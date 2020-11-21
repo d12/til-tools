@@ -1,2 +1,1 @@
-# til-tools
-Tools used in producing my TIL repo.
+Currently this repo just stores a small tool used to quickly post to [til](https://github.com/d12/til) from my command line.
