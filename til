@@ -1,0 +1,45 @@
+#!/usr/bin/env ruby
+
+require "tempfile"
+require "octokit"
+require "byebug"
+
+REPO_NAME = "d12/til"
+
+# Removes comment lines, and removes leading/trailing whitespace
+def value_from_file(file)
+  File.read(file)
+    .lines
+    .map(&:strip)
+    .reject { |l| l.start_with?("#") }
+    .join("\n")
+end
+
+def prompt_user_to_edit(file)
+  system("vim \"+normal G$\" +startinsert #{file.path}")
+end
+
+def github_client
+  @github_client ||= Octokit::Client.new(access_token: ENV["GITHUB_TOKEN"])
+end
+
+def abort(message)
+  puts "Aborting: #{message}"
+  exit 1
+end
+
+title_file = Tempfile.new
+File.write(title_file.path, "# Enter a title\n#\n\n")
+prompt_user_to_edit(title_file)
+title = value_from_file(title_file).lines.first # Can only take one line for the title
+abort("No title provided") unless title
+
+
+body_file = Tempfile.new
+File.write(body_file.path, "# Enter a body\n#\n\n")
+prompt_user_to_edit(body_file)
+body = value_from_file(body_file)
+abort("No body provided") unless body
+
+issue = github_client.create_issue(REPO_NAME, title, body)
+puts "Successfuly created TIL: #{issue.html_url}"
